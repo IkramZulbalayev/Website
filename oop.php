@@ -1,62 +1,56 @@
-
 <?php
-class CollatzConjecture {
-    public $startNumber;
-    public $iterations;
-    public $highestValue;
 
-    public function __construct($startNumber) {
-        $this->startNumber = $startNumber;
-        $this->iterations = 0;
+class CollatzStatz {
+    public $n;
+    public $m;
+    const multiplier = 3;
+    const addition = 1;
+
+    public function __construct($n, $m) {
+        $this->n = $n;
+        $this->m = $m;
     }
+    
+    public function calculateCollatz($num) {
+        $sequence = [];
 
-    public function performCalculation($startNumber) {
-        $currentNumber = $startNumber;
-        $this->iterations = 0;
-        $this->highestValue = $currentNumber;
-
-        while ($currentNumber != 1) {
-            if ($currentNumber % 2 == 0) {
-                $currentNumber = $currentNumber / 2;
+        while ($num != 1) {
+            $sequence[] = $num;
+            if ($num % 2 == 0) {
+                $num = $num / 2;
             } else {
-                $currentNumber = 3 * $currentNumber + 1;
-            }
-            $this->iterations++;
-            $this->highestValue = max($this->highestValue, $currentNumber);  
-        }
-    }
-
-    public function getIterations() {
-        return $this->iterations;
-    }
-
-    public function statistics($startRange, $endRange) {
-        $maxIterations = 0;
-        $minIterations = PHP_INT_MAX;
-        $maxValue = 0;
-        $minValue = 0;
-
-        for ($i = $startRange; $i <= $endRange; $i++) {
-            $this->performCalculation($i);
-
-            if ($this->iterations > $maxIterations) {
-                $maxIterations = $this->iterations;
-                $maxValue = $i;
-            }
-
-            if ($this->iterations < $minIterations) {
-                $minIterations = $this->iterations;
-                $minValue = $i;
+                $num = $num * self::multiplier + self::addition;
             }
         }
-
-        return [
-            'numberWithMaxIterations' => $maxValue,
-            'maxIterations' => $maxIterations,
-            'numberWithMinIterations' => $minValue,
-            'minIterations' => $minIterations
-        ];
+        $sequence[] = 1; // Add 1 at the end of the sequence
+        return $sequence;
     }
 }
-?>
 
+class HistogramGen extends CollatzStatz {
+    public function __construct($n, $m) {
+        parent::__construct($n, $m);
+    }
+
+    public function calculateHistogram() {
+        $histogram = [];
+
+        for ($i = $this->n; $i <= $this->m; $i++) {
+            $sequence = $this->calculateCollatz($i);
+            $histogram[] = [
+                'num' => $i,
+                'iteration' => count($sequence),
+                'max' => max($sequence),
+                'steps' => $sequence,
+            ];
+        }
+        return $histogram;
+    }
+}
+
+$startNumber = isset($_GET['start']) ? $_GET['start'] : 2;
+$lastNumber = isset($_GET['last']) ? $_GET['last'] : 100;
+$collatz = new HistogramGen($startNumber, $lastNumber);
+$histogram = $collatz->calculateHistogram();
+
+?>
